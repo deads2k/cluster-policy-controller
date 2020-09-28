@@ -1,16 +1,16 @@
 package clusterquotareconciliation
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
 	"time"
 
-	"k8s.io/klog"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	kutilerrors "k8s.io/apimachinery/pkg/util/errors"
@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/kubernetes/pkg/controller/resourcequota"
 	utilquota "k8s.io/kubernetes/pkg/quota/v1"
@@ -380,7 +381,7 @@ func (c *ClusterQuotaReconcilationController) syncQuotaForNamespaces(originalQuo
 		return kutilerrors.NewAggregate(reconcilationErrors), retryItems
 	}
 
-	if _, err := c.clusterQuotaClient.UpdateStatus(quota); err != nil {
+	if _, err := c.clusterQuotaClient.UpdateStatus(context.TODO(), quota, metav1.UpdateOptions{}); err != nil {
 		return kutilerrors.NewAggregate(append(reconcilationErrors, err)), workItems
 	}
 
